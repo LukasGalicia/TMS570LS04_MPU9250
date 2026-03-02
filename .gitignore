@@ -1,0 +1,8 @@
+# --- CCS IDE Directories --- #
+# Contain local interface and path configurations
+.launches/
+.settings/
+
+# --- Compiler Output --- #
+# Eclipse compilator output - not part of versioned project
+Debug/
