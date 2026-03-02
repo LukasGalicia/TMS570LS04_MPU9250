@@ -99,7 +99,7 @@ MPU9250_t MPU;
 int main(void)
 {
 /* USER CODE BEGIN (3) */
-    uint16_t spiData, usrCtrl;
+    uint8_t spiData, usrCtrl;
 
     applicationInit();       // Initialize System modules
     
@@ -112,12 +112,20 @@ int main(void)
 
     for (;;)
     {
-        spiData = 0x0U;
-        usrCtrl = 0x0U;
-        MPU9250Read(&MPU, 1U, MPU9250_USER_CTRL, &spiData);
-        spiData |= 16U;
-        MPU9250Write(&MPU, 1U, MPU9250_USER_CTRL, &spiData);
-        MPU9250Read(&MPU, 1U, MPU9250_USER_CTRL, &usrCtrl);
+        spiData = 0x00U;
+        usrCtrl = 0x00U;
+
+        // 1. Get module ID
+        MPU9250Read(&MPU, MPU9250_WHOAMI, 1U, &spiData);
+
+        // 2. Test write 0x00 to USER_CTRL
+        MPU9250Write(&MPU, MPU9250_USER_CTRL, 1U, &usrCtrl);
+        MPU9250Read(&MPU, MPU9250_USER_CTRL, 1U, &spiData);
+
+        // 3. Write 0x10 to USER_CTRL (Write I2C_IF_DIS = 1)
+        usrCtrl = 0x10U;
+        MPU9250Write(&MPU, MPU9250_USER_CTRL, 1U, &usrCtrl);
+        MPU9250Read(&MPU, MPU9250_USER_CTRL, 1U, &spiData);
         asm(" nop");
     }
 /* USER CODE END */

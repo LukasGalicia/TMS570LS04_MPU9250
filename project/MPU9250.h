@@ -19,8 +19,18 @@ struct mod_conf_MPU9250
 };
 typedef struct mod_conf_MPU9250 MPU9250_t;
 
+static inline uint32_t MPU9250_spiRead(MPU9250_t *mpu, uint32_t blocksize, uint16 *srcbuff, uint16 *destbuff)
+{
+    return spiTransmitAndReceiveData(mpu->spi_reg, &(mpu->spi_config), blocksize, srcbuff, destbuff);
+}
+
+static inline uint32_t MPU9250_spiWrite(MPU9250_t *mpu, uint32_t blocksize, uint16_t *srcbuff)
+{
+    return spiTransmitData(mpu->spi_reg, &mpu->spi_config, blocksize, srcbuff);
+}
+
+void MPU9250Write(MPU9250_t *mpu, uint16_t reg, uint32_t bytesize, const uint8_t *txdata);
+void MPU9250Read(MPU9250_t *mpu, uint16_t reg, uint32_t bytesize, uint8_t *rxdata);
 void MPU9250Init(MPU9250_t* mpu, spiBASE_t *spi, spiDAT1_t cfg);
-void MPU9250Write(MPU9250_t *mpu, uint32_t rx_byte_size, uint16_t mpu_reg, uint16_t *databuff);
-void MPU9250Read(MPU9250_t *mpu, uint32_t rx_byte_size, uint16_t mpu_reg, uint16_t *destbuff);
 
 #endif /* PROJECT_MPU9250_H_ */
