@@ -12,7 +12,19 @@
 
 #define MAX_BLOCKSIZE 10U
 
-void MPU9250Read(MPU9250_t *mpu, uint16_t reg, uint32_t bytesize, uint8_t *rxdata)
+/* HAL SPI INTERNAL WRAPPERS */
+static inline uint32_t _MPU9250_spiReceive(MPU9250_t *mpu, uint32_t blocksize, uint16 *srcbuff, uint16 *destbuff)
+{
+    return spiTransmitAndReceiveData(mpu->spi_reg, &(mpu->spi_config), blocksize, srcbuff, destbuff);
+}
+
+static inline uint32_t _MPU9250_spiTransmit(MPU9250_t *mpu, uint32_t blocksize, uint16_t *srcbuff)
+{
+    return spiTransmitData(mpu->spi_reg, &mpu->spi_config, blocksize, srcbuff);
+}
+
+/* DEVICE SPI TRANSACTION PRIMITIVES */
+void MPU9250_Read(MPU9250_t *mpu, uint16_t reg, uint32_t bytesize, uint8_t *rxdata)
 {
     uint32_t blocksize = (bytesize >> 1U) + 1U;
 
@@ -20,7 +32,7 @@ void MPU9250Read(MPU9250_t *mpu, uint16_t reg, uint32_t bytesize, uint8_t *rxdat
     uint16_t destbuff[MAX_BLOCKSIZE] = {0x0U};
 
     srcbuff[0] = ((0x80U | reg ) << 8U);
-    MPU9250_spiRead(mpu, blocksize, srcbuff, destbuff);
+    _MPU9250_spiReceive(mpu, blocksize, srcbuff, destbuff);
 
     /*
      * ====== Buffer unpackaging ======
@@ -45,7 +57,7 @@ void MPU9250Read(MPU9250_t *mpu, uint16_t reg, uint32_t bytesize, uint8_t *rxdat
 
 }
 
-void MPU9250Write(MPU9250_t *mpu, uint16_t reg, uint32_t bytesize, const uint8_t *txdata)
+void MPU9250_Write(MPU9250_t *mpu, uint16_t reg, uint32_t bytesize, const uint8_t *txdata)
 {
     uint32_t blocksize = ((bytesize >> 1U) + 1U);
 
@@ -73,14 +85,17 @@ void MPU9250Write(MPU9250_t *mpu, uint16_t reg, uint32_t bytesize, const uint8_t
         k += 2;
     }
 
-    MPU9250_spiWrite(mpu, blocksize, srcbuff);
+    _MPU9250_spiTransmit(mpu, blocksize, srcbuff);
 
 }
 
-void MPU9250Init(MPU9250_t* mpu, spiBASE_t *spi, const spiDAT1_t cfg)
+
+void MPU9250_Init(MPU9250_t* mpu, spiBASE_t *spi, const spiDAT1_t cfg)
 {
     mpu->spi_reg = spi;         // SPI Register
     mpu->spi_config = cfg;      // SPI Driver Register Configuration
+
+    mpu->dev_id = MPU9250_ReadReg(mpu, MPU9250_REG_WHO_AM_I);       // Get MPU9250 Device ID
 }
 
 #endif /* PROJECT_MPU9250_C_ */
