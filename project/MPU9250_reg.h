@@ -19,9 +19,9 @@
 #define MPU9250_REG_ACCEL_XOUT_H    0x3BU       // High byte accel x-axis measurement
 #define MPU9250_REG_ACCEL_XOUT_L    0x3CU       // Low byte accel x-axis measurement
 #define MPU9250_REG_ACCEL_YOUT_H    0x3DU       // High byte accel y-axis measurement
-#define MPU9250_REG_ACCEL_YOUT_L    0x3EU       // Low byte accel x-axis measurement
+#define MPU9250_REG_ACCEL_YOUT_L    0x3EU       // Low byte accel y-axis measurement
 #define MPU9250_REG_ACCEL_ZOUT_H    0x3FU       // High byte accel z-axis measurement
-#define MPU9250_REG_ACCEL_ZOUT_L    0x40U       // Low byte accel x-axis measurement
+#define MPU9250_REG_ACCEL_ZOUT_L    0x40U       // Low byte accel z-axis measurement
 
 /* DEVICE MGMT REGISTERS */
 #define MPU9250_REG_USER_CTRL       0X6AU       // User Control register
@@ -32,7 +32,54 @@
 /* ===== MPU9250 REGISTER MAP END ===== */
 
 /* ===== MPU9250 DRIVER BITMASK BEGIN ===== */
+/* GYROSCOPE CONFIGURATION */
+#define MPU9250_MASK_GYRO_CFG_GYRO_FS_SEL       0x18U       // GYRO_CFG[GYRO_FS_SEL[1:0]]
+
+/* ACCELEROMETER CONFIGURATION */
+#define MPU9250_MASK_ACC_CFG_1_ACCEL_FS_SEL     0x18U       // ACCEL_CFG[ACCEL_FS_SEL[1:0]]
+
+/* POWER MANAGEMENT I */
+#define MPU9250_MASK_PWR1_H_RESET   0x80U       // PWR_MGMT_1[H_RESET]
+#define MPU9250_MASK_PWR1_SLEEP     0x40U       // PWR_MGMT_1[SLEEP]
+#define MPU9250_MASK_PWR1_CLKSEL    0x07U       // PWR_MGMT_1[CLKSEL]
+
+/* POWER MANAGEMENT II */
+#define MPU9250_MASK_PWR2_DISABLE_XA    0x20U   // PWR_MGMT_2[DISABLE_XA]
+#define MPU9250_MASK_PWR2_DISABLE_YA    0x10U   // PWR_MGMT_2[DISABLE_YA]
+#define MPU9250_MASK_PWR2_DISABLE_ZA    0x08U   // PWR_MGMT_2[DISABLE_ZA]
+#define MPU9250_MASK_PWR2_DISABLE_XG    0x04U   // PWR_MGMT_2[DISABLE_XG]
+#define MPU9250_MASK_PWR2_DISABLE_YG    0x02U   // PWR_MGMT_2[DISABLE_YG]
+#define MPU9250_MASK_PWR2_DISABLE_ZG    0x01U   // PWR_MGMT_2[DISABLE_ZG]
 
 /* ===== MPU9250 DRIVER BITMASK END ===== */
+
+/* ===== MPU9250 REGISTER VALUES BEGIN */
+/* GYROSCOPE ACCELERATION */
+typedef enum
+{
+    MPU9250_GYRO_FS_250dps = 0x00U,
+    MPU9250_GYRO_FS_500dps = 0x08U,
+    MPU9250_GYRO_FS_1kdps = 0x10U,
+    MPU9250_GYRO_FS_2kdps = 0x18U,
+} MPU9250_GyroRange;
+
+/* ACCELEROMETER CONFIGURATION */
+typedef enum
+{
+    MPU9250_ACCEL_FS_2G = 0x00U,
+    MPU9250_ACCEL_FS_4G = 0x08U,
+    MPU9250_ACCEL_FS_8G = 0x10U,
+    MPU9250_ACCEL_FS_16G = 0x18U,
+} MPU9250_AccelRange;
+
+/* POWER MANAGEMENT I */
+typedef enum
+{
+    MPU9250_PWR1_CLKSEL_20MHz = 0x00U,
+    MPU9250_PWR1_CLKSEL_PLL = 0x01U,
+    MPU9250_PWR1_CLKSEL_STOP = 0x07U,
+} MPU9250_ClkSel;
+
+/* ===== MPU9250 REGISTER VALUES END ===== */
 
 #endif /* PROJECT_MPU9250_REG_H_ */

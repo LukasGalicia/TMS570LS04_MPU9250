@@ -50,6 +50,8 @@
 #include "sys_common.h"
 
 /* USER CODE BEGIN (1) */
+#define CPU_CLK_FREQ    80000000U
+
 /* TI HW INCLUDE */
 #include "gio.h"
 #include "het.h"
