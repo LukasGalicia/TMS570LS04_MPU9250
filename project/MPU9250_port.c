@@ -117,3 +117,8 @@ void MPU9250_UpdateBits(MPU9250_t *mpu, uint16_t reg, uint8_t bits, uint8_t valu
     val = (val & ~bits) | (bits & value);
     MPU9250_WriteReg(mpu, reg, val);
 }
+
+void MPU9250_ReadBurst(MPU9250_t *mpu, uint16_t base, uint32_t blocksize, uint8_t *data)
+{
+    _MPU9250_Read(mpu, base, blocksize, data);
+}

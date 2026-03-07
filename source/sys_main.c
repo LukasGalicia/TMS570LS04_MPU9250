@@ -92,6 +92,12 @@ MPU9250_t MPU;
 /* User var BEGIN */
 
 /* User fcn define BEGIN */
+void wait(int delay)
+{
+    volatile int nop;
+    for(nop = 0; nop <= delay; nop++)
+        asm(" nop");
+}
 /* User fcn define END */
 
 /* USER CODE END */
@@ -99,8 +105,7 @@ MPU9250_t MPU;
 int main(void)
 {
 /* USER CODE BEGIN (3) */
-    uint8_t spiData;
-    uint8_t test = 0;
+    IMUData_t sensorData;
 
     applicationInit();       // Initialize System modules
     
@@ -111,17 +116,14 @@ int main(void)
         .CSNR = SPI_CS_3        // Using SPI2NCS[3]
     });
 
+    MPU9250_Reset(&MPU);
+    wait(0x186A00);
+    MPU9250_ConfigClk(&MPU, MPU9250_PWR1_CLKSEL_PLL);
+    MPU9250_ConfigAccel(&MPU, MPU9250_ACCEL_FS_4G);
+
     for (;;)
     {
-        do
-        {
-            MPU9250_DisableI2C(&MPU);
-            spiData = MPU9250_ReadReg(&MPU, MPU9250_REG_USER_CTRL);
-            MPU9250_Reset(&MPU);
-            spiData = MPU9250_ReadReg(&MPU, MPU9250_REG_USER_CTRL);
-            test = 1;
-            asm(" nop");
-        } while(test == 0);
+        MPU9250_ReadAccel(&MPU, &sensorData);
     }
 /* USER CODE END */
 
