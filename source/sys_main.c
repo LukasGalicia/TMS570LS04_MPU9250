@@ -100,6 +100,7 @@ int main(void)
 {
 /* USER CODE BEGIN (3) */
     uint8_t spiData;
+    uint8_t test = 0;
 
     applicationInit();       // Initialize System modules
     
@@ -112,8 +113,15 @@ int main(void)
 
     for (;;)
     {
-        spiData = MPU9250_ReadReg(&MPU, MPU9250_REG_USER_CTRL);
-        asm(" nop");
+        do
+        {
+            MPU9250_DisableI2C(&MPU);
+            spiData = MPU9250_ReadReg(&MPU, MPU9250_REG_USER_CTRL);
+            MPU9250_Reset(&MPU);
+            spiData = MPU9250_ReadReg(&MPU, MPU9250_REG_USER_CTRL);
+            test = 1;
+            asm(" nop");
+        } while(test == 0);
     }
 /* USER CODE END */
 
