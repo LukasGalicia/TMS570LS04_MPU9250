@@ -18,6 +18,8 @@ struct MPU9250_device_config
     spiBASE_t *spi_reg;
     spiDAT1_t spi_config;
     uint8_t dev_id;
+    float accel_scale;
+    float gyro_scale;
 };
 typedef struct MPU9250_device_config MPU9250_t;
 

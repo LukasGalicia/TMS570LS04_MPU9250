@@ -11,6 +11,11 @@
 #include "MPU9250_reg.h"
 #include "MPU9250_port.h"
 
+#define ACCEL_SCALE_2G      16384.0f
+#define ACCEL_SCALE_4G      8192.0f
+#define ACCEL_SCALE_8G      4096.0f
+#define ACCEL_SCALE_16G     2048.0f
+
 struct MPU9250_IMU_sensor_data {
     int16_t accel_x, accel_y, accel_z;
     int16_t gyro_x,  gyro_y,  gyro_z;

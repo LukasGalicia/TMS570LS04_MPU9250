@@ -50,8 +50,6 @@
 #include "sys_common.h"
 
 /* USER CODE BEGIN (1) */
-#define CPU_CLK_FREQ    80000000U
-
 /* TI HW INCLUDE */
 #include "gio.h"
 #include "het.h"
@@ -84,7 +82,18 @@ void applicationInit(void)
     /* SYSTEM INIT END */
 }
 
+/* User Typedef BEGIN */
+struct accel_g_real
+{
+    float accel_Xg;
+    float accel_Yg;
+    float accel_Zg;
+};
+typedef struct accel_g_real accelData_t;
+/* User Typedef END */
+
 /* User macro BEGIN */
+#define CPU_CLK_FREQ 80000000U
 /* User macro END */
 
 /* User var BEGIN */
@@ -92,10 +101,13 @@ MPU9250_t MPU;
 /* User var BEGIN */
 
 /* User fcn define BEGIN */
-void wait(int delay)
+void wait(int delay_ms)
 {
-    volatile int nop;
-    for(nop = 0; nop <= delay; nop++)
+    uint32_t msrate = CPU_CLK_FREQ / 5000U;
+    uint32_t ms_delay_cycles = msrate * delay_ms;
+
+    volatile uint32_t nop;
+    for(nop = 0; nop <= ms_delay_cycles; nop++)
         asm(" nop");
 }
 /* User fcn define END */
@@ -106,9 +118,13 @@ int main(void)
 {
 /* USER CODE BEGIN (3) */
     IMUData_t sensorData;
+    accelData_t sysAccel;
 
     applicationInit();       // Initialize System modules
     
+    MPU9250_Reset(&MPU);
+    wait(100);
+
     MPU9250_Init(&MPU, spiREG2, (spiDAT1_t){
         .CS_HOLD = true,        // Hold CS on transaction
         .WDEL = false,          // Wait Delay disabled
@@ -116,14 +132,16 @@ int main(void)
         .CSNR = SPI_CS_3        // Using SPI2NCS[3]
     });
 
-    MPU9250_Reset(&MPU);
-    wait(0x186A00);
     MPU9250_ConfigClk(&MPU, MPU9250_PWR1_CLKSEL_PLL);
     MPU9250_ConfigAccel(&MPU, MPU9250_ACCEL_FS_4G);
 
     for (;;)
     {
         MPU9250_ReadAccel(&MPU, &sensorData);
+        sysAccel.accel_Xg = ((float) sensorData.accel_x) / ACCEL_SCALE_4G;
+        sysAccel.accel_Yg = ((float) sensorData.accel_y) / ACCEL_SCALE_4G;
+        sysAccel.accel_Zg = ((float) sensorData.accel_z) / ACCEL_SCALE_4G;
+        wait(250);
     }
 /* USER CODE END */
 
