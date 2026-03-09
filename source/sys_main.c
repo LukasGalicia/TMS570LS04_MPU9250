@@ -93,7 +93,8 @@ typedef struct {
 /* User macro BEGIN */
 #define CPU_CLK_FREQ 80000000U
 
-#define getAccelG(sensorData, accelScale) (((float) sensorData) / accelScale)
+#define getAccelG(raw, mod)     (((float) raw) / (mod)->accel_scale)
+#define getGyroDPS(raw, mod)    (((float) raw) / (mod)->gyro_scale)
 /* User macro END */
 
 /* User var BEGIN */
@@ -118,7 +119,7 @@ int main(void)
 /* USER CODE BEGIN (3) */
     MPU9250_t MPU;
     MPU9250Data_t imuDataRaw;
-    Vector3f_t accelData;
+    Vector3f_t accelData, gyroData;
 
     applicationInit();       // Initialize System modules
 
@@ -133,13 +134,25 @@ int main(void)
     wait(100);
     MPU9250_ConfigClk(&MPU, MPU9250_PWR1_CLKSEL_PLL);
     MPU9250_ConfigAccel(&MPU, MPU9250_ACCEL_FS_4G);
+    MPU9250_ConfigGyro(&MPU, MPU9250_GYRO_FS_500dps);
 
     for (;;)
     {
+        /* 1. Gyroscope & Accelerometer Read */
+        MPU9250_ReadGyro(&MPU, &imuDataRaw);
         MPU9250_ReadAccel(&MPU, &imuDataRaw);
-        accelData.x = getAccelG(imuDataRaw.accel_x, MPU9250_ACCEL_SCALE_4G);
-        accelData.y = getAccelG(imuDataRaw.accel_y, MPU9250_ACCEL_SCALE_4G);
-        accelData.z = getAccelG(imuDataRaw.accel_z, MPU9250_ACCEL_SCALE_4G);
+
+        /* 2. Physical unit scale conversions */
+        // Angular velocity (°/s)
+        gyroData.x = getGyroDPS(imuDataRaw.gyro_x, &MPU);
+        gyroData.y = getGyroDPS(imuDataRaw.gyro_y, &MPU);
+        gyroData.z = getGyroDPS(imuDataRaw.gyro_z, &MPU);
+
+        // Acceleration (G)
+        accelData.x = getAccelG(imuDataRaw.accel_x, &MPU);
+        accelData.y = getAccelG(imuDataRaw.accel_y, &MPU);
+        accelData.z = getAccelG(imuDataRaw.accel_z, &MPU);
+
         wait(250);
     }
 /* USER CODE END */

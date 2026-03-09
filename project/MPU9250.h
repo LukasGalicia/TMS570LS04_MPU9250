@@ -16,6 +16,11 @@
 #define MPU9250_ACCEL_SCALE_8G      4096.0f
 #define MPU9250_ACCEL_SCALE_16G     2048.0f
 
+#define MPU9250_GYRO_SCALE_250DPS       131.00f
+#define MPU9250_GYRO_SCALE_500DPS        65.50f
+#define MPU9250_GYRO_SCALE_1000DPS       32.80f
+#define MPU9250_GYRO_SCALE_2000DPS       16.40f
+
 struct MPU9250_IMU_sensor_data {
     int16_t accel_x, accel_y, accel_z;
     int16_t gyro_x,  gyro_y,  gyro_z;
@@ -29,6 +34,7 @@ void MPU9250_DisableI2C(MPU9250_t *mpu);
 void MPU9250_ConfigClk(MPU9250_t *mpu, MPU9250_ClkSel clk);
 void MPU9250_ConfigGyro(MPU9250_t *mpu, MPU9250_GyroRange fs_sel);
 void MPU9250_ConfigAccel(MPU9250_t *mpu, MPU9250_AccelRange fs_sel);
+void MPU9250_ReadGyro(MPU9250_t *mpu, MPU9250Data_t *imu);
 void MPU9250_ReadAccel(MPU9250_t *mpu, MPU9250Data_t *data);
 
 #endif /* PROJECT_MPU9250_H_ */

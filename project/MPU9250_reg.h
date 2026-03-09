@@ -23,6 +23,14 @@
 #define MPU9250_REG_ACCEL_ZOUT_H    0x3FU       // High byte accel z-axis measurement
 #define MPU9250_REG_ACCEL_ZOUT_L    0x40U       // Low byte accel z-axis measurement
 
+/* GYROSCOPE SENSOR DATA REGISTERS */
+#define MPU9250_REG_GYRO_XOUT_H    0x43U       // High byte gyro x-axis measurement
+#define MPU9250_REG_GYRO_XOUT_L    0x44U       // Low byte gyro x-axis measurement
+#define MPU9250_REG_GYRO_YOUT_H    0x45U       // High byte gyro y-axis measurement
+#define MPU9250_REG_GYRO_YOUT_L    0x46U       // Low byte gyro y-axis measurement
+#define MPU9250_REG_GYRO_ZOUT_H    0x47U       // High byte gyro z-axis measurement
+#define MPU9250_REG_GYRO_ZOUT_L    0x48U       // Low byte gyro z-axis measurement
+
 /* DEVICE MGMT REGISTERS */
 #define MPU9250_REG_USER_CTRL       0X6AU       // User Control register
 #define MPU9250_REG_PWR_MGMT_1      0x6BU       // Power Management 1 register
