@@ -83,21 +83,20 @@ void applicationInit(void)
 }
 
 /* User Typedef BEGIN */
-struct accel_g_real
-{
-    float accel_Xg;
-    float accel_Yg;
-    float accel_Zg;
-};
-typedef struct accel_g_real accelData_t;
+typedef struct {
+    float x;
+    float y;
+    float z;
+} Vector3f_t;
 /* User Typedef END */
 
 /* User macro BEGIN */
 #define CPU_CLK_FREQ 80000000U
+
+#define getAccelG(sensorData, accelScale) (((float) sensorData) / accelScale)
 /* User macro END */
 
 /* User var BEGIN */
-MPU9250_t MPU;
 /* User var BEGIN */
 
 /* User fcn define BEGIN */
@@ -117,13 +116,11 @@ void wait(int delay_ms)
 int main(void)
 {
 /* USER CODE BEGIN (3) */
-    IMUData_t sensorData;
-    accelData_t sysAccel;
+    MPU9250_t MPU;
+    MPU9250Data_t imuDataRaw;
+    Vector3f_t accelData;
 
     applicationInit();       // Initialize System modules
-    
-    MPU9250_Reset(&MPU);
-    wait(100);
 
     MPU9250_Init(&MPU, spiREG2, (spiDAT1_t){
         .CS_HOLD = true,        // Hold CS on transaction
@@ -132,15 +129,17 @@ int main(void)
         .CSNR = SPI_CS_3        // Using SPI2NCS[3]
     });
 
+    MPU9250_Reset(&MPU);
+    wait(100);
     MPU9250_ConfigClk(&MPU, MPU9250_PWR1_CLKSEL_PLL);
     MPU9250_ConfigAccel(&MPU, MPU9250_ACCEL_FS_4G);
 
     for (;;)
     {
-        MPU9250_ReadAccel(&MPU, &sensorData);
-        sysAccel.accel_Xg = ((float) sensorData.accel_x) / ACCEL_SCALE_4G;
-        sysAccel.accel_Yg = ((float) sensorData.accel_y) / ACCEL_SCALE_4G;
-        sysAccel.accel_Zg = ((float) sensorData.accel_z) / ACCEL_SCALE_4G;
+        MPU9250_ReadAccel(&MPU, &imuDataRaw);
+        accelData.x = getAccelG(imuDataRaw.accel_x, MPU9250_ACCEL_SCALE_4G);
+        accelData.y = getAccelG(imuDataRaw.accel_y, MPU9250_ACCEL_SCALE_4G);
+        accelData.z = getAccelG(imuDataRaw.accel_z, MPU9250_ACCEL_SCALE_4G);
         wait(250);
     }
 /* USER CODE END */

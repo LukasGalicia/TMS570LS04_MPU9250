@@ -43,7 +43,7 @@ void MPU9250_ConfigAccel(MPU9250_t *mpu, MPU9250_AccelRange fs_sel)
     MPU9250_UpdateBits(mpu, MPU9250_REG_ACCEL_CONFIG_1, MPU9250_MASK_ACC_CFG_1_ACCEL_FS_SEL, fs_sel);
 }
 
-void MPU9250_ReadAccel(MPU9250_t *mpu, IMUData_t *imu)
+void MPU9250_ReadAccel(MPU9250_t *mpu, MPU9250Data_t *imu)
 {
     uint8_t accel_data[6] = {0U};
 
