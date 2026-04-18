@@ -139,19 +139,21 @@ int main(void)
     for (;;)
     {
         /* 1. Gyroscope & Accelerometer Read */
-        MPU9250_ReadGyro(&MPU, &imuDataRaw);
-        MPU9250_ReadAccel(&MPU, &imuDataRaw);
+        MPU9250_ReadAll(&MPU, &imuDataRaw);         // Burst-read all sensor data
+//        Alternatively, each IMU component can be polled individually:
+//        MPU9250_ReadGyro(&MPU, &imuDataRaw);
+//        MPU9250_ReadAccel(&MPU, &imuDataRaw);
 
         /* 2. Physical unit scale conversions */
         // Angular velocity (°/s)
-        gyroData.x = getGyroDPS(imuDataRaw.gyro_x, &MPU);
-        gyroData.y = getGyroDPS(imuDataRaw.gyro_y, &MPU);
-        gyroData.z = getGyroDPS(imuDataRaw.gyro_z, &MPU);
+        gyroData.x = MPU9250_GetGyro_DPS(imuDataRaw.gyro_x, &MPU);
+        gyroData.y = MPU9250_GetGyro_DPS(imuDataRaw.gyro_y, &MPU);
+        gyroData.z = MPU9250_GetGyro_DPS(imuDataRaw.gyro_z, &MPU);
 
         // Acceleration (G)
-        accelData.x = getAccelG(imuDataRaw.accel_x, &MPU);
-        accelData.y = getAccelG(imuDataRaw.accel_y, &MPU);
-        accelData.z = getAccelG(imuDataRaw.accel_z, &MPU);
+        accelData.x = MPU9250_GetAccel_G(imuDataRaw.accel_x, &MPU);
+        accelData.y = MPU9250_GetAccel_G(imuDataRaw.accel_y, &MPU);
+        accelData.z = MPU9250_GetAccel_G(imuDataRaw.accel_z, &MPU);
 
         wait(250);
     }

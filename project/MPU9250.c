@@ -46,7 +46,6 @@ void MPU9250_ConfigGyro(MPU9250_t *mpu, MPU9250_GyroRange fs_sel)
         default:                        mpu->gyro_scale = MPU9250_GYRO_SCALE_250DPS;    break;
     }
 
-
 }
 
 void MPU9250_ConfigAccel(MPU9250_t *mpu, MPU9250_AccelRange fs_sel)
@@ -63,26 +62,62 @@ void MPU9250_ConfigAccel(MPU9250_t *mpu, MPU9250_AccelRange fs_sel)
     }
 }
 
-void MPU9250_ReadGyro(MPU9250_t *mpu, MPU9250Data_t *imu)
+void MPU9250_ConfigDLPF(MPU9250_t *mpu, MPU9250_DLPF_BW bw)
+{
+    // Set gyroscope/thermometer DLPF
+    MPU9250_ClearBits(mpu, MPU9250_REG_GYRO_CONFIG, MPU9250_MASK_GYRO_CFG_FCHOICE_B);
+    MPU9250_UpdateBits(mpu, MPU9250_REG_CONFIG, MPU9250_MASK_CONFIG_DLPF_CFG, bw);
+
+    // Set accelerometer DLPF
+    MPU9250_UpdateBits(mpu, MPU9250_REG_ACCEL_CONFIG_2, MPU9250_MASK_ACC_CFG_2_ACCEL_FCHOICE_B | MPU9250_MASK_ACC_CFG_2_A_DLPFCFG, bw);
+}
+
+void MPU9250_ReadAll(MPU9250_t *mpu, MPU9250Data_t *raw)
+{
+    uint8_t imu_data[14] = {0U};
+
+    MPU9250_ReadBurst(mpu, MPU9250_REG_ACCEL_XOUT_H, 14, imu_data);
+
+    raw->accel_x = (int16_t)((imu_data[0] << 8) | imu_data[1]);
+    raw->accel_y = (int16_t)((imu_data[2] << 8) | imu_data[3]);
+    raw->accel_z = (int16_t)((imu_data[4] << 8) | imu_data[5]);
+
+    raw->temp    = (int16_t)((imu_data[6] << 8) | imu_data[7]);
+
+    raw->gyro_x  = (int16_t)((imu_data[8] << 8) | imu_data[9]);
+    raw->gyro_y  = (int16_t)((imu_data[10] << 8) | imu_data[11]);
+    raw->gyro_z  = (int16_t)((imu_data[12] << 8) | imu_data[13]);
+}
+
+void MPU9250_ReadGyro(MPU9250_t *mpu, MPU9250Data_t *raw)
 {
     uint8_t gyro_data[6] = {0U};
 
     MPU9250_ReadBurst(mpu, MPU9250_REG_GYRO_XOUT_H, 6, gyro_data);
 
-    imu->gyro_x = (int16_t) ((((uint16_t) gyro_data[0]) << 8U) | gyro_data[1]);
-    imu->gyro_y = (int16_t) ((((uint16_t) gyro_data[2]) << 8U) | gyro_data[3]);
-    imu->gyro_z = (int16_t) ((((uint16_t) gyro_data[4]) << 8U) | gyro_data[5]);
+    raw->gyro_x = (int16_t) ((((uint16_t) gyro_data[0]) << 8U) | gyro_data[1]);
+    raw->gyro_y = (int16_t) ((((uint16_t) gyro_data[2]) << 8U) | gyro_data[3]);
+    raw->gyro_z = (int16_t) ((((uint16_t) gyro_data[4]) << 8U) | gyro_data[5]);
 }
 
-void MPU9250_ReadAccel(MPU9250_t *mpu, MPU9250Data_t *imu)
+void MPU9250_ReadAccel(MPU9250_t *mpu, MPU9250Data_t *raw)
 {
     uint8_t accel_data[6] = {0U};
 
     MPU9250_ReadBurst(mpu, MPU9250_REG_ACCEL_XOUT_H, 6, accel_data);
 
-    imu->accel_x = (int16_t) ((((uint16_t) accel_data[0]) << 8U) | accel_data[1]);
-    imu->accel_y = (int16_t) ((((uint16_t) accel_data[2]) << 8U) | accel_data[3]);
-    imu->accel_z = (int16_t) ((((uint16_t) accel_data[4]) << 8U) | accel_data[5]);
+    raw->accel_x = (int16_t) ((((uint16_t) accel_data[0]) << 8U) | accel_data[1]);
+    raw->accel_y = (int16_t) ((((uint16_t) accel_data[2]) << 8U) | accel_data[3]);
+    raw->accel_z = (int16_t) ((((uint16_t) accel_data[4]) << 8U) | accel_data[5]);
+}
+
+int16_t MPU9250_ReadTemp(MPU9250_t *mpu)
+{
+    uint8_t temp_data[2] = {0U};
+
+    MPU9250_ReadBurst(mpu, MPU9250_REG_TEMP_OUT_H, 2, temp_data);
+
+    return (int16_t)((temp_data[0] << 8) | temp_data[1]);
 }
 
 #endif /* PROJECT_MPU9250_C_ */

@@ -11,6 +11,7 @@
 /* ===== MPU9250 REGISTER MAP BEGIN ===== */
 
 /* CONFIGURATION REGISTERS */
+#define MPU9250_REG_CONFIG          0x1AU       // Configuration
 #define MPU9250_REG_GYRO_CONFIG     0x1BU       // Gyroscope configuration
 #define MPU9250_REG_ACCEL_CONFIG_1  0x1CU       // Accelerometer configuration 1
 #define MPU9250_REG_ACCEL_CONFIG_2  0x1DU       // Accelerometer configuration 2
@@ -22,6 +23,10 @@
 #define MPU9250_REG_ACCEL_YOUT_L    0x3EU       // Low byte accel y-axis measurement
 #define MPU9250_REG_ACCEL_ZOUT_H    0x3FU       // High byte accel z-axis measurement
 #define MPU9250_REG_ACCEL_ZOUT_L    0x40U       // Low byte accel z-axis measurement
+
+/* THERMOMETER SENSOR DATA REGISTERS */
+#define MPU9250_REG_TEMP_OUT_H      0x41U       // High byte temp measurement
+#define MPU9250_REG_TEMP_OUT_L      0x42U       // Low byte temp measurement
 
 /* GYROSCOPE SENSOR DATA REGISTERS */
 #define MPU9250_REG_GYRO_XOUT_H    0x43U       // High byte gyro x-axis measurement
@@ -40,11 +45,19 @@
 /* ===== MPU9250 REGISTER MAP END ===== */
 
 /* ===== MPU9250 DRIVER BITMASK BEGIN ===== */
+/*  CONFIGURATION  */
+#define MPU9250_MASK_CONFIG_DLPF_CFG            0x07U       // CONFIG[FLPF_CFG[2:0]]
+
 /* GYROSCOPE CONFIGURATION */
 #define MPU9250_MASK_GYRO_CFG_GYRO_FS_SEL       0x18U       // GYRO_CFG[GYRO_FS_SEL[1:0]]
+#define MPU9250_MASK_GYRO_CFG_FCHOICE_B         0x03U       // GYRO_CFG[Fchoice_b[1:0]]
 
-/* ACCELEROMETER CONFIGURATION */
+/* ACCELEROMETER CONFIGURATION 1 */
 #define MPU9250_MASK_ACC_CFG_1_ACCEL_FS_SEL     0x18U       // ACCEL_CFG[ACCEL_FS_SEL[1:0]]
+
+/* ACCELEROMETER CONFIGURATION 2 */
+#define MPU9250_MASK_ACC_CFG_2_ACCEL_FCHOICE_B      0x08U       // ACCEL_CFG[accel_fchoice_b]
+#define MPU9250_MASK_ACC_CFG_2_A_DLPFCFG            0x07U       // ACCEL_CFG[A_DLPFCFG[2:0]]
 
 /* POWER MANAGEMENT I */
 #define MPU9250_MASK_PWR1_H_RESET   0x80U       // PWR_MGMT_1[H_RESET]
@@ -65,7 +78,19 @@
 /* ===== MPU9250 DRIVER BITMASK END ===== */
 
 /* ===== MPU9250 REGISTER VALUES BEGIN */
-/* GYROSCOPE ACCELERATION */
+/* DIGITAL LOWPASS FILTER (Gyro, Acc) */
+typedef enum
+{
+    MPU9250_DLPF_250Hz = 0x00U,     // Gyro: 250Hz, Accel: 218Hz
+    MPU9250_DLPF_184Hz = 0x01U,     // Gyro: 184Hz, Accel: 218Hz
+    MPU9250_DLPF_92Hz  = 0x02U,     // Gyro: 92Hz,  Accel: 99Hz
+    MPU9250_DLPF_41Hz  = 0x03U,     // Gyro: 41Hz,  Accel: 44.8Hz
+    MPU9250_DLPF_20Hz  = 0x04U,     // Gyro: 20Hz,  Accel: 21.2Hz
+    MPU9250_DLPF_10Hz  = 0x05U,     // Gyro: 10Hz,  Accel: 10.2Hz
+    MPU9250_DLPF_5Hz   = 0x06U,     // Gyro: 5Hz,   Accel: 5.05Hz
+} MPU9250_DLPF_BW;
+
+/* GYROSCOPE CONFIGURATION */
 typedef enum
 {
     MPU9250_GYRO_FS_250dps = 0x00U,
@@ -74,7 +99,7 @@ typedef enum
     MPU9250_GYRO_FS_2kdps = 0x18U,
 } MPU9250_GyroRange;
 
-/* ACCELEROMETER CONFIGURATION */
+/* ACCELEROMETER CONFIGURATION 1 */
 typedef enum
 {
     MPU9250_ACCEL_FS_2G = 0x00U,

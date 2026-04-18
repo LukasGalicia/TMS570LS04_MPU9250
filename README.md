@@ -47,9 +47,6 @@ typedef struct {
 
 /* User macro BEGIN */
 #define CPU_CLK_FREQ 80000000U			// TMS570LS04 runs @ 80MHz
-
-#define getAccelG(raw, mod)     (((float) raw) / (mod)->accel_scale)
-#define getGyroDPS(raw, mod)    (((float) raw) / (mod)->gyro_scale)
 /* User macro END */
 
 /* User fcn BEGIN */
@@ -66,56 +63,51 @@ void wait(int delay_ms)     // Generic system delay
 
 int main(void)
 {
-    MPU9250_t MPU;						// Object absraction of MPU9250
-    MPU9250Data_t imuDataRaw;			// Raw sensor data container
-    Vector3f_t accelData, gyroData;		// Vectorized 3D float data
+/* USER CODE BEGIN (3) */
+    MPU9250_t MPU;
+    MPU9250Data_t imuDataRaw;
+    Vector3f_t accelData, gyroData;
 
-    spiInit();					// Initialize Hercules's SPI module
+    applicationInit();       // Initialize System modules
 
-    /* 
-	*  MPU9250's object abstraction block. MPU9250_Init
-	*  configures an MPU9250_t object in memory.
-    *
-    *  MPU9250_t stores SPI bus specifications of a certain
-    *  MPU9250 module.
-	*/
-	MPU9250_Init(&MPU, spiREG2, (spiDAT1_t){
+    MPU9250_Init(&MPU, spiREG2, (spiDAT1_t){
         .CS_HOLD = true,        // Hold CS on transaction
         .WDEL = false,          // Wait Delay disabled
         .DFSEL = SPI_FMT_0,     // Using SPI Format 0
         .CSNR = SPI_CS_3        // Using SPI2NCS[3]
     });
 
-	// Module Initialization
-    MPU9250_Reset(&MPU);									// System reset
+    MPU9250_Reset(&MPU);
     wait(100);
-    MPU9250_ConfigClk(&MPU, MPU9250_PWR1_CLKSEL_PLL);		// Set system clock to 20MHz PLL
-    MPU9250_ConfigAccel(&MPU, MPU9250_ACCEL_FS_4G);			// Set accelerometer's FS range to 4G
-    MPU9250_ConfigGyro(&MPU, MPU9250_GYRO_FS_500dps);		// Set gyroscope's FS range to 500 °/s
+    MPU9250_ConfigClk(&MPU, MPU9250_PWR1_CLKSEL_PLL);
+    MPU9250_ConfigAccel(&MPU, MPU9250_ACCEL_FS_4G);
+    MPU9250_ConfigGyro(&MPU, MPU9250_GYRO_FS_500dps);
 
     for (;;)
     {
-        /* 1. Full sensor data read */
-        MPU9250_ReadAll(&MPU, &imuDataRaw);
+        /* 1. Gyroscope & Accelerometer Read */
+        MPU9250_ReadAll(&MPU, &imuDataRaw);         // Burst-read all sensor data
+
+//        Alternatively, each IMU component can be polled individually:
+//        MPU9250_ReadGyro(&MPU, &imuDataRaw);
+//        MPU9250_ReadAccel(&MPU, &imuDataRaw);
 
         /* 2. Physical unit scale conversions */
         // Angular velocity (°/s)
-        gyroData.x = getGyroDPS(imuDataRaw.gyro_x, &MPU);
-        gyroData.y = getGyroDPS(imuDataRaw.gyro_y, &MPU);
-        gyroData.z = getGyroDPS(imuDataRaw.gyro_z, &MPU);
+        gyroData.x = MPU9250_GetGyro_DPS(imuDataRaw.gyro_x, &MPU);
+        gyroData.y = MPU9250_GetGyro_DPS(imuDataRaw.gyro_y, &MPU);
+        gyroData.z = MPU9250_GetGyro_DPS(imuDataRaw.gyro_z, &MPU);
 
         // Acceleration (G)
-        accelData.x = getAccelG(imuDataRaw.accel_x, &MPU);
-        accelData.y = getAccelG(imuDataRaw.accel_y, &MPU);
-        accelData.z = getAccelG(imuDataRaw.accel_z, &MPU);
-
-        // gyroData & accelData represent actionable 3D vectors of sensor physical readings.
+        accelData.x = MPU9250_GetAccel_G(imuDataRaw.accel_x, &MPU);
+        accelData.y = MPU9250_GetAccel_G(imuDataRaw.accel_y, &MPU);
+        accelData.z = MPU9250_GetAccel_G(imuDataRaw.accel_z, &MPU);
 
         wait(250);
     }
-
     return 0;
 }
+
 ```
 
 We recommend using a similar structure to `Vector3f_t` to handle converted sensor data within dedicated control loops. Such a data format allows for very convenient and straightfoward data vectoring and integration in wider application sequences.
@@ -135,13 +127,17 @@ void MPU9250_DisableI2C(MPU9250_t *mpu);
 void MPU9250_ConfigClk(MPU9250_t *mpu, MPU9250_ClkSel clk);
 void MPU9250_ConfigGyro(MPU9250_t *mpu, MPU9250_GyroRange fs_sel);
 void MPU9250_ConfigAccel(MPU9250_t *mpu, MPU9250_AccelRange fs_sel);
-void MPU9250_ReadGyro(MPU9250_t *mpu, MPU9250Data_t *imu);
-void MPU9250_ReadAccel(MPU9250_t *mpu, MPU9250Data_t *data);
+void MPU9250_ConfigDLPF(MPU9250_t *mpu, MPU9250_DLPF_BW bw);
+void MPU9250_ReadAll(MPU9250_t *mpu, MPU9250Data_t *raw);
+void MPU9250_ReadGyro(MPU9250_t *mpu, MPU9250Data_t *raw);
+void MPU9250_ReadAccel(MPU9250_t *mpu, MPU9250Data_t *raw);
+int16_t MPU9250_ReadTemp(MPU9250_t *mpu);
 ```
 
 This library implements `MPU9250_t`, which is an abstraction of MPU9250's SPI bus configuration and some of its initialization settings for easier reference on the application layer:
 
 ```cpp
+// MPU9250_port.h
 struct MPU9250_device_config
 {
     spiBASE_t *spi_reg;
@@ -157,8 +153,10 @@ Most application interface functions require an **initialized** `MPU9250_t` obje
 
 `MPU9250Data_t` is a dedicated MPU9250 sensor data container/buffer object:
 ```cpp
+// MPU9250.h
 struct MPU9250_IMU_sensor_data {
     int16_t accel_x, accel_y, accel_z;
+    int16_t temp;
     int16_t gyro_x,  gyro_y,  gyro_z;
 };
 typedef struct MPU9250_IMU_sensor_data MPU9250Data_t;
